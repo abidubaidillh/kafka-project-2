@@ -9,18 +9,37 @@ Terdapat sebuah sistem Big Data dengan arsitektur seperti gambar di atas. Sistem
 
 1. Terdapat sebuah file dataset yang akan dibaca secara sekuensial oleh Kafka Producer. TIDAK DIPERBOLEHKAN MENGGUNAKAN DATASET YANG SUDAH DIGUNAKAN PADA TUGAS-TUGAS SEBELUMNYA.
 
+<details>
+<summary> Jawaban </summary>
+  
 #### Mencari dataset pada kaggle
 Movie Dataset 
 
 (sumber: https://www.kaggle.com/datasets/rounakbanik/the-movies-dataset?select=links.csv)
 
+</details>
+
 2. Kafka Producer akan mengirimkan data per baris ke Kafka Server seolah-olah sedang melakukan streaming. Proses ini dapat dilakukan dengan menambahkan jeda/sleep secara random agar data tidak dikirimkan secara langsung.
+
+<details>
+<summary>Jawaban</summary>
+
+{tulis disni}
+
+</details>
 
 3. Kafka consumer membaca data yang ada di dalam Kafka server dan akan menyimpan data yang diterima dalam bentuk batch. Batch dapat ditentukan berdasarkan:
 
 - Jumlah data yang diterima
 
 - Rentang waktu proses (window) Sehingga nanti akan didapatkan beberapa file dataset sesuai dengan batch yang dipilih.
+
+<details>
+<summary>Jawaban</summary>
+
+{tulis disni}
+
+</details>
 
 4. Spark script bertugas untuk melakukan training model sesuai dengan data yang masuk. Diharapkan ada beberapa model yang dihasilkan sesuai dengan jumlah data yang masuk. Kalian dapat menentukan sendiri berapa jumlah data yang diproses untuk tiap model. Contoh:
 
@@ -43,5 +62,12 @@ User akan melakukan request ke API. API akan memberikan respon sesuai dengan req
 Apabila user melakukan request rekomendasi, maka input yang diperlukan adalah rating dari user dan response yang diberikan adalah daftar rekomendasi.
 Apabila modelnya adalah kasus clustering, maka response yang diberikan adalah ada di cluster mana data input dari user tersebut.
 Jumlah API yang dibuat minimal sebanyak jumlah anggotanya (apabila ada 3 anggota, maka minimal membuat 3 api endpoint dengan fungsi berbeda)
+
+<details>
+<summary>Jawaban</summary>
+
+{tulis disni}
+
+</details>
 
 
