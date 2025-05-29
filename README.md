@@ -71,3 +71,18 @@ Jumlah API yang dibuat minimal sebanyak jumlah anggotanya (apabila ada 3 anggota
 </details>
 
 
+======================================================================================================================================================================
+# LANGKAH LANGKAH MENJALANKAN
+1. jalankan docker-compose dengan
+   `docker-compose up -d`
+
+   pastikan sudah ter-compose dengan:
+   `docker ps`
+
+   jika hasilnya seperti ini:
+   ![image](https://github.com/user-attachments/assets/b29a0007-cfa0-4375-a13b-b7d22fbbe40a)
+
+   docker-compose berhasil dijalankan dilanjutkan dengan membuat topik dalam dataset kai ini membuat topik "movie ratings"
+
+2. Membuat Topik
+
