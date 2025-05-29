@@ -9,6 +9,11 @@ Terdapat sebuah sistem Big Data dengan arsitektur seperti gambar di atas. Sistem
 
 1. Terdapat sebuah file dataset yang akan dibaca secara sekuensial oleh Kafka Producer. TIDAK DIPERBOLEHKAN MENGGUNAKAN DATASET YANG SUDAH DIGUNAKAN PADA TUGAS-TUGAS SEBELUMNYA.
 
+#### Mencari dataset pada kaggle
+Movie Dataset 
+
+(sumber: https://www.kaggle.com/datasets/rounakbanik/the-movies-dataset?select=links.csv)
+
 2. Kafka Producer akan mengirimkan data per baris ke Kafka Server seolah-olah sedang melakukan streaming. Proses ini dapat dilakukan dengan menambahkan jeda/sleep secara random agar data tidak dikirimkan secara langsung.
 
 3. Kafka consumer membaca data yang ada di dalam Kafka server dan akan menyimpan data yang diterima dalam bentuk batch. Batch dapat ditentukan berdasarkan:
