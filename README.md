@@ -73,9 +73,11 @@ services:
 ```
 
 1. jalankan docker-compose dengan
+   
    `docker-compose up -d`
 
    pastikan sudah ter-compose dengan:
+
    `docker ps`
 
    [gambar]
@@ -86,26 +88,29 @@ services:
    docker-compose berhasil dijalankan dilanjutkan dengan membuat topik dalam dataset kai ini membuat topik "movie ratings"
 
 2. Jalankan Consumer dan Producer
+   
    `python kafka_producer.py`
 
-   [gambar]
+   ![Image](https://github.com/user-attachments/assets/49b6cdc7-0895-4afe-9a2d-fd31549ddb6d)
 
    `python kafka_producer.py`
 
-   [gambar]
+   ![Image](https://github.com/user-attachments/assets/f917c9ed-357a-48bf-84b6-a918f8229c67)
 
    Dari consumer mengahasilkan 3 file dalam Batces data untuk proses train nantinya
    
    Dsni kita membuat membuat 3 model (Regression, Clustering, Classification)
 
-4. Jalankan spark untuk membuat dan melatih model
+3. Jalankan spark untuk membuat dan melatih model
+   
    `spark-submit spark_training.py`
   
    [gambar]
 
    Dari spark ini menghasilkan 3 file untuk masing-masing model
 
-5. Jalankan api server untuk membuat endpoint
+4. Jalankan api server untuk membuat endpoint
+   
    `spark-submit api_server.py`
 
    ![Image](https://github.com/user-attachments/assets/808a63e9-a4d3-4ddb-8c23-5cdf995ebade)
