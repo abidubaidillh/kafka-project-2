@@ -1,4 +1,4 @@
-# Proyek Big Data: Simulasi Streaming Data Smart Home dengan Kafka, Spark, dan API
+# Proyek Big Data: Kafka, Spark, dan API
 
 |Nama|NRP|
 |-|-|
