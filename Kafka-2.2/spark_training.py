@@ -1,175 +1,134 @@
-from flask import Flask, request, jsonify
 from pyspark.sql import SparkSession
-from pyspark.ml import PipelineModel
-from pyspark.sql.types import StructType, StructField, IntegerType, FloatType
+from pyspark.sql.functions import col, when
+from pyspark.ml.feature import VectorAssembler, StandardScaler
+from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.regression import LinearRegression
+from pyspark.ml.clustering import KMeans
+from pyspark.ml import Pipeline
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator, RegressionEvaluator, ClusteringEvaluator
 import os
+import glob
 
-app = Flask(__name__)
-
-# --- Konfigurasi Jalur Model ---
-# Sesuaikan ini dengan BASE_PROJECT_DIR yang Anda gunakan di spark_training.py
+# --- Konfigurasi Jalur ---
+# PERBAIKAN PENTING: Gunakan jalur gaya Linux untuk akses WSL ke drive Windows
+# Mengubah 'C:\...' menjadi '/mnt/c/...'
+# Tambahkan sub-direktori 'models' untuk menyimpan output model agar rapi
 BASE_PROJECT_DIR = '/mnt/c/Users/syahmi/OneDrive/Documents/gass.html/Insis/Kafka-2.2/Kafka-2.2'
-MODEL_OUTPUT_DIR = os.path.join(BASE_PROJECT_DIR, 'models')
+BATCH_DATA_DIR = os.path.join(BASE_PROJECT_DIR, 'batched_data')
+MODEL_OUTPUT_DIR = os.path.join(BASE_PROJECT_DIR, 'models') # Direktori baru untuk menyimpan model
+BATCH_FILE_PATTERN = os.path.join(BATCH_DATA_DIR, 'movielens_batch_*.csv')
 
-# Inisialisasi SparkSession di luar endpoint agar hanya dibuat sekali
-# Saat aplikasi Flask dimulai
-spark = SparkSession.builder \
-    .appName("MovieLensModelAPI") \
-    .config("spark.hadoop.io.nativeio", "false") \
-    .getOrCreate()
+# Pastikan direktori model ada
+if not os.path.exists(MODEL_OUTPUT_DIR):
+    os.makedirs(MODEL_OUTPUT_DIR)
+    print(f"Created directory: {MODEL_OUTPUT_DIR}")
 
-# --- Muat Model Spark (akan dimuat saat aplikasi Flask dimulai) ---
-# Penting: Pastikan nama model sesuai dengan yang Anda simpan di spark_training.py
-# Contoh: kita akan memuat model dari batch terakhir, misalnya batch 1
-# Anda mungkin perlu menyesuaikan 'set_1' jika Anda hanya ingin melayani batch tertentu,
-# atau membuat logika untuk memilih model dari batch tertentu.
-
-try:
-    # Muat model klasifikasi
-    MODEL_CLASSIFICATION_PATH = os.path.join(MODEL_OUTPUT_DIR, "classification_model_set_1")
-    model_classification = PipelineModel.load(MODEL_CLASSIFICATION_PATH)
-    print(f"Model Klasifikasi berhasil dimuat dari: {MODEL_CLASSIFICATION_PATH}")
-except Exception as e:
-    print(f"Gagal memuat Model Klasifikasi: {e}")
-    model_classification = None
-
-try:
-    # Muat model regresi
-    MODEL_REGRESSION_PATH = os.path.join(MODEL_OUTPUT_DIR, "regression_model_set_1")
-    model_regression = PipelineModel.load(MODEL_REGRESSION_PATH)
-    print(f"Model Regresi berhasil dimuat dari: {MODEL_REGRESSION_PATH}")
-except Exception as e:
-    print(f"Gagal memuat Model Regresi: {e}")
-    model_regression = None
-
-try:
-    # Muat model clustering
-    MODEL_CLUSTERING_PATH = os.path.join(MODEL_OUTPUT_DIR, "clustering_model_set_1")
-    model_clustering = PipelineModel.load(MODEL_CLUSTERING_PATH)
-    print(f"Model Clustering berhasil dimuat dari: {MODEL_CLUSTERING_PATH}")
-except Exception as e:
-    print(f"Gagal memuat Model Clustering: {e}")
-    model_clustering = None
-
-# --- Definisi Skema Data Input ---
-# Ini penting untuk membuat Spark DataFrame dari data JSON yang masuk
-input_schema_classification_regression = StructType([
-    StructField("userId", IntegerType(), True),
-    StructField("movieId", IntegerType(), True)
-])
-
-input_schema_clustering = StructType([
-    StructField("userId", IntegerType(), True),
-    StructField("movieId", IntegerType(), True),
-    StructField("rating", FloatType(), True) # Clustering menggunakan rating juga
-])
-
-# --- Endpoint untuk Klasifikasi (Predict Like/Dislike) ---
-@app.route('/predict_classification', methods=['POST'])
-def predict_classification():
-    if model_classification is None:
-        return jsonify({"error": "Model Klasifikasi tidak tersedia."}), 500
-
-    data = request.get_json(force=True)
-    if not isinstance(data, list):
-        data = [data] # Pastikan data adalah list of dictionaries
-
-    try:
-        # Konversi data JSON ke Spark DataFrame
-        input_df = spark.createDataFrame(data, schema=input_schema_classification_regression)
-        
-        # Buat prediksi
-        predictions = model_classification.transform(input_df)
-        
-        # Ambil hasil dan ubah ke format JSON
-        # Pilih kolom yang relevan: userId, movieId, dan prediction (0 atau 1)
-        results = predictions.select("userId", "movieId", "prediction").collect()
-        
-        output = []
-        for row in results:
-            output.append({
-                "userId": row.userId,
-                "movieId": row.movieId,
-                "prediction_like": int(row.prediction) # 0 for dislike, 1 for like
-            })
-        
-        return jsonify(output)
-    except Exception as e:
-        return jsonify({"error": str(e), "message": "Terjadi kesalahan saat memproses prediksi klasifikasi."}), 500
-
-# --- Endpoint untuk Regresi (Predict Rating) ---
-@app.route('/predict_regression', methods=['POST'])
-def predict_regression():
-    if model_regression is None:
-        return jsonify({"error": "Model Regresi tidak tersedia."}), 500
-
-    data = request.get_json(force=True)
-    if not isinstance(data, list):
-        data = [data] # Pastikan data adalah list of dictionaries
-
-    try:
-        # Konversi data JSON ke Spark DataFrame
-        input_df = spark.createDataFrame(data, schema=input_schema_classification_regression)
-        
-        # Buat prediksi
-        predictions = model_regression.transform(input_df)
-        
-        # Ambil hasil dan ubah ke format JSON
-        # Pilih kolom yang relevan: userId, movieId, dan prediction (rating)
-        results = predictions.select("userId", "movieId", "prediction").collect()
-        
-        output = []
-        for row in results:
-            output.append({
-                "userId": row.userId,
-                "movieId": row.movieId,
-                "predicted_rating": round(row.prediction, 2) # Bulatkan rating ke 2 desimal
-            })
-        
-        return jsonify(output)
-    except Exception as e:
-        return jsonify({"error": str(e), "message": "Terjadi kesalahan saat memproses prediksi regresi."}), 500
-
-# --- Endpoint untuk Clustering (Predict User Cluster) ---
-@app.route('/predict_clustering', methods=['POST'])
-def predict_clustering():
-    if model_clustering is None:
-        return jsonify({"error": "Model Clustering tidak tersedia."}), 500
-
-    data = request.get_json(force=True)
-    if not isinstance(data, list):
-        data = [data] # Pastikan data adalah list of dictionaries
-
-    try:
-        # Konversi data JSON ke Spark DataFrame
-        input_df = spark.createDataFrame(data, schema=input_schema_clustering)
-        
-        # Buat prediksi
-        predictions = model_clustering.transform(input_df)
-        
-        # Ambil hasil dan ubah ke format JSON
-        # Pilih kolom yang relevan: userId, movieId, rating, dan prediction (cluster)
-        results = predictions.select("userId", "movieId", "rating", "prediction").collect()
-        
-        output = []
-        for row in results:
-            output.append({
-                "userId": row.userId,
-                "movieId": row.movieId,
-                "rating": row.rating,
-                "cluster_id": int(row.prediction)
-            })
-        
-        return jsonify(output)
-    except Exception as e:
-        return jsonify({"error": str(e), "message": "Terjadi kesalahan saat memproses prediksi clustering."}), 500
-
-if __name__ == '__main__':
-    # For running in a local development environment
-    # Using host '0.0.0.0' so it's accessible from outside WSL (e.g., from Windows browser)
-    app.run(host='0.0.0.0', port=5000, debug=False) # Change to False
+def train_models():
+    spark = SparkSession.builder \
+        .appName("MovieLensModelTraining") \
+        .config("spark.hadoop.io.nativeio", "false") \
+        .getOrCreate()
     
-    # Penting: Pastikan SparkSession dihentikan saat aplikasi Flask berhenti
-    # Ini bisa ditangani oleh shutdown hook Spark secara otomatis,
-    # tetapi secara eksplisit bisa lebih baik jika ada masalah.
-    # spark.stop() # Tidak perlu dipanggil di sini karena Flask akan menangani shutdown
+    batch_files = sorted(glob.glob(BATCH_FILE_PATTERN))
+    if not batch_files:
+        print(f"No batch files found in {BATCH_DATA_DIR}. Exiting.")
+        spark.stop()
+        return
+
+    accumulated_df = None
+
+    for i, batch_file_path in enumerate(batch_files):
+        print(f"\n--- Processing Batch {i+1}: {batch_file_path} ---")
+        df_batch = spark.read.csv(batch_file_path, header=True, inferSchema=True)
+
+        if 'timestamp' in df_batch.columns:
+            df_batch = df_batch.drop('timestamp')  # optional
+
+        # Tambahkan label untuk klasifikasi: like = rating >= 4
+        df_batch = df_batch.withColumn("label_like", when(col("rating") >= 4.0, 1).otherwise(0).cast("integer"))
+
+        if accumulated_df is None:
+            accumulated_df = df_batch
+        else:
+            accumulated_df = accumulated_df.unionByName(df_batch)
+
+        accumulated_df.cache()
+        total_records = accumulated_df.count()
+        print(f"Total accumulated records: {total_records}")
+
+        if total_records < 100:
+            print(f"Skipping model training for batch {i+1}, not enough data.")
+            accumulated_df.unpersist()
+            continue
+
+        # --- Fitur: userId & movieId ---
+        feature_cols = ["userId", "movieId"]
+
+        # --- 1. Klasifikasi (Disukai atau tidak) ---
+        print(f"\nTraining Classification Model (Set {i+1})...")
+        assembler_cls = VectorAssembler(inputCols=feature_cols, outputCol="features_unscaled_cls")
+        scaler_cls = StandardScaler(inputCol="features_unscaled_cls", outputCol="features_cls")
+        classifier = LogisticRegression(featuresCol="features_cls", labelCol="label_like")
+
+        pipeline_cls = Pipeline(stages=[assembler_cls, scaler_cls, classifier])
+        train_cls, test_cls = accumulated_df.randomSplit([0.8, 0.2], seed=100+i)
+
+        model_cls = pipeline_cls.fit(train_cls)
+        preds_cls = model_cls.transform(test_cls)
+
+        evaluator_cls = MulticlassClassificationEvaluator(labelCol="label_like", metricName="accuracy")
+        acc = evaluator_cls.evaluate(preds_cls)
+        print(f"  Classification Accuracy: {acc:.4f}")
+        
+        # Simpan model klasifikasi
+        model_cls_path = os.path.join(MODEL_OUTPUT_DIR, f"classification_model_set_{i+1}")
+        model_cls.write().overwrite().save(model_cls_path)
+        print(f"  Classification model saved to: {model_cls_path}")
+
+        # --- 2. Regresi Rating ---
+        print(f"\nTraining Regression Model (Set {i+1})...")
+        assembler_reg = VectorAssembler(inputCols=feature_cols, outputCol="features_unscaled_reg")
+        scaler_reg = StandardScaler(inputCol="features_unscaled_reg", outputCol="features_reg")
+        regressor = LinearRegression(featuresCol="features_reg", labelCol="rating")
+
+        pipeline_reg = Pipeline(stages=[assembler_reg, scaler_reg, regressor])
+        train_reg, test_reg = accumulated_df.randomSplit([0.8, 0.2], seed=200+i)
+
+        model_reg = pipeline_reg.fit(train_reg)
+        preds_reg = model_reg.transform(test_reg)
+
+        evaluator_reg = RegressionEvaluator(labelCol="rating", metricName="rmse")
+        rmse = evaluator_reg.evaluate(preds_reg)
+        print(f"  Regression RMSE: {rmse:.4f}")
+        
+        # Simpan model regresi
+        model_reg_path = os.path.join(MODEL_OUTPUT_DIR, f"regression_model_set_{i+1}")
+        model_reg.write().overwrite().save(model_reg_path)
+        print(f"  Regression model saved to: {model_reg_path}")
+
+        # --- 3. Clustering pengguna ---
+        print(f"\nTraining Clustering Model (Set {i+1})...")
+        assembler_cluster = VectorAssembler(inputCols=feature_cols + ["rating"], outputCol="features_unscaled_cluster")
+        scaler_cluster = StandardScaler(inputCol="features_unscaled_cluster", outputCol="features_cluster")
+        kmeans = KMeans(featuresCol="features_cluster", k=5, seed=300+i)
+
+        pipeline_cluster = Pipeline(stages=[assembler_cluster, scaler_cluster, kmeans])
+        model_cluster = pipeline_cluster.fit(accumulated_df)
+
+        preds_cluster = model_cluster.transform(accumulated_df)
+        evaluator_cluster = ClusteringEvaluator(featuresCol="features_cluster", predictionCol="prediction")
+        silhouette = evaluator_cluster.evaluate(preds_cluster)
+        print(f"  Clustering Silhouette Score: {silhouette:.4f}")
+        
+        # Simpan model clustering
+        model_cluster_path = os.path.join(MODEL_OUTPUT_DIR, f"clustering_model_set_{i+1}")
+        model_cluster.write().overwrite().save(model_cluster_path)
+        print(f"  Clustering model saved to: {model_cluster_path}")
+
+        accumulated_df.unpersist()
+
+    spark.stop()
+    print("Model training complete. Spark session stopped.")
+
+if __name__ == "__main__":
+    train_models()
