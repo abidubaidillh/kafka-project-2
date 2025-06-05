@@ -1,43 +1,34 @@
-## Project Big Data 2
-- Project ini dilakukan secara berkelompok, yang terdiri dari maksimal 3 orang
-- Hasil Project akan di upload ke Github (submit link nya) di assingment ini
-- Project akan di presentasikan / di demokan minggu depan
+# Proyek Big Data: Simulasi Streaming Data Smart Home dengan Kafka, Spark, dan API
 
-  <img width="1001" alt="soal" src="https://github.com/user-attachments/assets/73bd5298-7f00-4673-863b-1248e21cce37" />
-  
-Terdapat sebuah sistem Big Data dengan arsitektur seperti gambar di atas. Sistem tersebut berfungsi untuk menyimulasikan pemrosesan data stream menggunakan Kafka dan Apache Spark. Untuk kemudahan pemrosesan, Kafka Consumer tidak wajib menggunakan Spark Streaming. Alur yang diharapkan adalah sebagai berikut.
+## Overview Proyek
 
-1. Terdapat sebuah file dataset yang akan dibaca secara sekuensial oleh Kafka Producer. TIDAK DIPERBOLEHKAN MENGGUNAKAN DATASET YANG SUDAH DIGUNAKAN PADA TUGAS-TUGAS SEBELUMNYA.
+Proyek ini bertujuan untuk mensimulasikan arsitektur pemrosesan Big Data secara real-time menggunakan Apache Kafka untuk streaming data, Apache Spark untuk pemrosesan batch dan pelatihan model Machine Learning, serta Flask API untuk menyajikan hasil prediksi model. Data yang digunakan adalah dataset penggunaan perangkat smart home, di mana model-model yang dibangun bertujuan untuk memprediksi efisiensi perangkat, potensi kerusakan, dan melakukan segmentasi perangkat berdasarkan karakteristiknya.
 
-2. Kafka Producer akan mengirimkan data per baris ke Kafka Server seolah-olah sedang melakukan streaming. Proses ini dapat dilakukan dengan menambahkan jeda/sleep secara random agar data tidak dikirimkan secara langsung.
+**Arsitektur Sistem:**
 
-3. Kafka consumer membaca data yang ada di dalam Kafka server dan akan menyimpan data yang diterima dalam bentuk batch. Batch dapat ditentukan berdasarkan:
+1.  **Kafka Producer:** Membaca dataset rating user dari file (`rating_small.csv`) baris per baris dan mengirimkannya sebagai stream pesan ke Kafka Server.
+2.  **Kafka Server:** Bertindak sebagai message broker yang menampung stream data.
+3.  **Kafka Consumer:** Mengkonsumsi data dari Kafka Server dan menyimpan data tersebut dalam bentuk file-file batch CSV.
+4.  **Apache Spark:** Membaca file-file batch CSV tersebut untuk melakukan:
+    *   Preprocessing data.
+    *   Melatih tiga jenis model Machine Learning secara akumulatif (setiap model dilatih ulang dengan data yang lebih banyak seiring masuknya batch baru):
+        1.  **Model Klasifikasi Efisiensi Perangkat:** Memprediksi apakah perangkat efisien atau tidak.
+        2.  **Model Regresi Potensi Kerusakan:** Memprediksi jumlah potensi insiden kerusakan.
+        3.  **Model Clustering Perangkat:** Mengelompokkan perangkat ke dalam segmen-segmen berdasarkan karakteristiknya.
+    *   Menyimpan model-model yang telah dilatih.
+5.  **Flask API:** Memuat model-model Machine Learning terbaru yang telah dilatih oleh Spark dan menyediakan endpoint RESTful untuk:
+    *   Menerima input data perangkat dari pengguna.
+    *   Mengembalikan hasil prediksi dari ketiga model.
+6.  **Streamlit UI:** Antarmuka pengguna berbasis web sederhana untuk berinteraksi dengan Flask API secara visual.
 
-- Jumlah data yang diterima
-
-- Rentang waktu proses (window) Sehingga nanti akan didapatkan beberapa file dataset sesuai dengan batch yang dipilih.
-
-4. Spark script bertugas untuk melakukan training model sesuai dengan data yang masuk. Diharapkan ada beberapa model yang dihasilkan sesuai dengan jumlah data yang masuk. Kalian dapat menentukan sendiri berapa jumlah data yang diproses untuk tiap model. Contoh:
-
-a. Terdapat 3 model dengan skema sebagai berikut:
-
-  - Model 1: Menggunakan data selama 5 menit pertama atau 500.000 data pertama.
-  - Model 2: Menggunakan data selama 5 menit kedua atau 500.000 data kedua.
-  - Model 3: Menggunakan data selama 5 menit ketiga atau 500.000 data ketiga.
-    
-b. Terdapat 3 model dengan skema sebagai berikut:
-
-  - Model 1: 1/3 data pertama
-  - Model 2: 1/3 data pertama + 1/3 data kedua
-  - Model 3: 1/3 data pertama + 1/3 data kedua + 1/3 data terakhir (semua data)
-    
-Model-model yang dihasilkan akan digunakan di dalam API. Buatlah endpoint sesuai dengan jumlah model yang ada.
-
-User akan melakukan request ke API. API akan memberikan respon sesuai dengan request user. Misal:
-
-Apabila user melakukan request rekomendasi, maka input yang diperlukan adalah rating dari user dan response yang diberikan adalah daftar rekomendasi.
-Apabila modelnya adalah kasus clustering, maka response yang diberikan adalah ada di cluster mana data input dari user tersebut.
-Jumlah API yang dibuat minimal sebanyak jumlah anggotanya (apabila ada 3 anggota, maka minimal membuat 3 api endpoint dengan fungsi berbeda)
+**Teknologi yang Digunakan:**
+*   Apache Kafka: Untuk message queuing dan data streaming.
+*   Apache Spark (PySpark): Untuk pemrosesan data batch dan pelatihan model Machine Learning.
+*   Flask: Untuk membangun REST API.
+*   Streamlit: Untuk membangun antarmuka pengguna (UI) interaktif.
+*   Python: Bahasa pemrograman utama.
+*   Docker & Docker Compose: Untuk manajemen environment Kafka dan Zookeeper.
+*   Mamba/Conda: Untuk manajemen environment Python dan dependensinya.
 
 ======================================================================================================================================================================
 # MENCARI DATASET DI KAGGLE
