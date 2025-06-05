@@ -1,34 +1,79 @@
 # Proyek Big Data: Simulasi Streaming Data Smart Home dengan Kafka, Spark, dan API
 
+|Nama|NRP|
+|-|-|
+|Benjamin|5027231078|
+|Muhammad Syahmi Ash|5027231085|
+|Abid Ubaidillah A|5027231089|
+***
+
 ## Overview Proyek
 
-Proyek ini bertujuan untuk mensimulasikan arsitektur pemrosesan Big Data secara real-time menggunakan Apache Kafka untuk streaming data, Apache Spark untuk pemrosesan batch dan pelatihan model Machine Learning, serta Flask API untuk menyajikan hasil prediksi model. Data yang digunakan adalah dataset penggunaan perangkat smart home, di mana model-model yang dibangun bertujuan untuk memprediksi efisiensi perangkat, potensi kerusakan, dan melakukan segmentasi perangkat berdasarkan karakteristiknya.
+Proyek ini bertujuan untuk mensimulasikan arsitektur pemrosesan Big Data secara real-time menggunakan Apache Kafka untuk streaming data, Apache Spark untuk pemrosesan batch dan pelatihan model Machine Learning, serta Flask API untuk menyajikan hasil prediksi model. Dataset yang digunakan adalah MovieLens (rating dan metadata film), di mana model-model yang dibangun bertujuan untuk memprediksi apakah pengguna akan menyukai suatu film, memperkirakan rating yang akan diberikan, serta mengelompokkan pengguna ke dalam segmen berdasarkan perilaku rating mereka.
 
 **Arsitektur Sistem:**
 
-1.  **Kafka Producer:** Membaca dataset rating user dari file (`rating_small.csv`) baris per baris dan mengirimkannya sebagai stream pesan ke Kafka Server.
-2.  **Kafka Server:** Bertindak sebagai message broker yang menampung stream data.
-3.  **Kafka Consumer:** Mengkonsumsi data dari Kafka Server dan menyimpan data tersebut dalam bentuk file-file batch CSV.
+1.  **Kafka Producer:** Membaca file `ratings_small.csv` dari MovieLens baris per baris, lalu mengirimkannya sebagai stream pesan ke Kafka Topic..
+2.  **Kafka Server:** Bertindak sebagai message broker yang menampung data streaming dari producer dan meneruskannya ke consumer.
+3.  **Kafka Consumer:** Menerima data dari Kafka Server dan menyimpannya dalam bentuk file batch CSV di folder `batched_data/`
 4.  **Apache Spark:** Membaca file-file batch CSV tersebut untuk melakukan:
     *   Preprocessing data.
-    *   Melatih tiga jenis model Machine Learning secara akumulatif (setiap model dilatih ulang dengan data yang lebih banyak seiring masuknya batch baru):
-        1.  **Model Klasifikasi Efisiensi Perangkat:** Memprediksi apakah perangkat efisien atau tidak.
-        2.  **Model Regresi Potensi Kerusakan:** Memprediksi jumlah potensi insiden kerusakan.
-        3.  **Model Clustering Perangkat:** Mengelompokkan perangkat ke dalam segmen-segmen berdasarkan karakteristiknya.
-    *   Menyimpan model-model yang telah dilatih.
-5.  **Flask API:** Memuat model-model Machine Learning terbaru yang telah dilatih oleh Spark dan menyediakan endpoint RESTful untuk:
-    *   Menerima input data perangkat dari pengguna.
-    *   Mengembalikan hasil prediksi dari ketiga model.
-6.  **Streamlit UI:** Antarmuka pengguna berbasis web sederhana untuk berinteraksi dengan Flask API secara visual.
+    *   Pelatihan model Machine Learning secara akumulatif setiap batch:
+        1.  **Model Klasifikasi Efisiensi Perangkat:** Memprediksi apakah user akan menyukai film berdasarkan rating ≥ 4.0..
+        2.  **Model Regresi Potensi Kerusakan:** Memprediksi rating numerik yang akan diberikan oleh pengguna.
+        3.  **Model Clustering Perangkat:** Mengelompokkan pengguna berdasarkan pola rating dan perilaku mereka.
+    *   Menyimpan model-model hasil pelatihan ke folder `trained_models/`.
+5.  **Flask API:** Memuat model terbaru yang telah dilatih dan menyediakan endpoint RESTful untuk:
+    *   Menerima input data .
+    *   Mengembalikan prediksi klasifikasi, rating, dan cluster.
+
 
 **Teknologi yang Digunakan:**
-*   Apache Kafka: Untuk message queuing dan data streaming.
-*   Apache Spark (PySpark): Untuk pemrosesan data batch dan pelatihan model Machine Learning.
+*   Apache Kafka: Streaming data & message queue antara komponen.
+*   Apache Spark (PySpark): Preprocessing, training, evaluasi model Machine Learning.
 *   Flask: Untuk membangun REST API.
 *   Streamlit: Untuk membangun antarmuka pengguna (UI) interaktif.
 *   Python: Bahasa pemrograman utama.
 *   Docker & Docker Compose: Untuk manajemen environment Kafka dan Zookeeper.
-*   Mamba/Conda: Untuk manajemen environment Python dan dependensinya.
+*   Mamba/Conda: Manajemen environment dan dependensi Python.
+
+## Struktur Direktori Proyek
+```
+Kafka-2.2
+    │   api_server.py               # Untuk membangun REST API
+    │   docker-compose.yml          # Untuk manajemen environment Kafka dan Zookeeper
+    │   kafka_consumer.py           # Menangani data dari Kafka Server
+    │   kafka_producer.py           # Membaca file dari dataset dan mengirimkannya ke server agar diteruskan ke consumer
+    │   spark_training.py           # Preprocessing, melatih model dan menyimpan model
+    │
+    ├───batched_data                # hasil dari consumer
+    │       movielens_batch_1748945638_1.csv
+    │       movielens_batch_1748945638_2.csv
+    │       movielens_batch_1748945638_3.csv
+    │
+    ├───dataset                     # sumber data producer
+    │       movies_metadata.csv
+    │       ratings_small.csv
+    │
+    └───models                       # Model yang dihasilkan
+        ├───classification_model_set_1/
+        │
+        ├───classification_model_set_2/
+        |
+        ├───classification_model_set_3/      
+        │
+        ├───clustering_model_set_1/
+        │
+        ├───clustering_model_set_2/
+        │
+        ├───clustering_model_set_3/
+        │
+        ├───regression_model_set_1/
+        │
+        ├───regression_model_set_2/
+        │
+        └───regression_model_set_3/
+```
 
 ======================================================================================================================================================================
 # MENCARI DATASET DI KAGGLE
@@ -96,7 +141,6 @@ services:
    
    `spark-submit spark_training.py`
   
-   [gambar]
 
    Dari spark ini menghasilkan 3 file untuk masing-masing model
 
