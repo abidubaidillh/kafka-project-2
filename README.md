@@ -108,7 +108,7 @@ services:
 5. Jalankan api server untuk membuat endpoint
    `spark-submit api_server.py`
 
-   [Image](https://github.com/user-attachments/assets/808a63e9-a4d3-4ddb-8c23-5cdf995ebade)
+   ![Image](https://github.com/user-attachments/assets/808a63e9-a4d3-4ddb-8c23-5cdf995ebade)
 
    3 Endpoint yang dibuat:
    - http://localhost:5000/predict_classification
