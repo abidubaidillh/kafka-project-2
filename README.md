@@ -19,9 +19,9 @@ Proyek ini bertujuan untuk mensimulasikan arsitektur pemrosesan Big Data secara 
 4.  **Apache Spark:** Membaca file-file batch CSV tersebut untuk melakukan:
     *   Preprocessing data.
     *   Pelatihan model Machine Learning secara akumulatif setiap batch:
-        1.  **Model Klasifikasi Efisiensi Perangkat:** Memprediksi apakah user akan menyukai film berdasarkan rating ≥ 4.0..
-        2.  **Model Regresi Potensi Kerusakan:** Memprediksi rating numerik yang akan diberikan oleh pengguna.
-        3.  **Model Clustering Perangkat:** Mengelompokkan pengguna berdasarkan pola rating dan perilaku mereka.
+        1.  **Model Klasifikasi:** Memprediksi apakah user akan menyukai film berdasarkan rating ≥ 4.0..
+        2.  **Model Regresi:** Memprediksi rating numerik yang akan diberikan oleh pengguna.
+        3.  **Model Clustering:** Mengelompokkan pengguna berdasarkan pola rating dan perilaku mereka.
     *   Menyimpan model-model hasil pelatihan ke folder `trained_models/`.
 5.  **Flask API:** Memuat model terbaru yang telah dilatih dan menyediakan endpoint RESTful untuk:
     *   Menerima input data .
@@ -152,6 +152,14 @@ services:
 
    3 Endpoint yang dibuat:
    - http://localhost:5000/predict_classification
+   
+   ![WhatsApp Image 2025-06-05 at 05 37 40_fb88cdf3](https://github.com/user-attachments/assets/857d04a1-516d-4696-8ca2-f12c12fb11a6)
+
    - http://localhost:5000/predict_regression
+   
+   ![WhatsApp Image 2025-06-05 at 05 37 40_f8d65016](https://github.com/user-attachments/assets/710340d0-6c00-446f-b1ae-9949ff5c764d)
+
    - http://localhost:5000/predict_clustering
+   
+   ![WhatsApp Image 2025-06-05 at 05 37 21_bbd53257](https://github.com/user-attachments/assets/1eb86e57-c54c-43d2-b4f8-b7045849c528)
    
