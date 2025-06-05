@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.VectorAssembler","timestamp":1749069045102,"sparkVersion":"3.5.1","uid":"VectorAssembler_a803baceebcc","paramMap":{"outputCol":"features_unscaled_cls","inputCols":["userId","movieId"]},"defaultParamMap":{"handleInvalid":"error","outputCol":"VectorAssembler_a803baceebcc__output"}}
